@@ -2,56 +2,41 @@ const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const cors = require('cors');
-const https = require('https');
 
 const app = express();
+
+// Use PORT from environment (needed for Render)
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-// Allow self-signed SSL
-const agent = new https.Agent({
-  rejectUnauthorized: false,
-});
-
-app.get('/api/incidents', async (req, res) => {
 app.get('/', (req, res) => {
   res.send('✅ Lebanon Dispatch Monitor API is running. Try <a href="/api/incidents">/api/incidents</a>');
 });
-  try {
-    const { data } = await axios.get('https://www.lcdes.org/monitor.html', {
-      httpsAgent: agent,
-    });
 
-    const $ = cheerio.load(data);
+app.get('/api/incidents', async (req, res) => {
+  try {
+    const { data: html } = await axios.get('https://www.lcdes.org/monitor.html');
+    const $ = cheerio.load(html);
+
     const incidents = [];
 
-    $('table tr').each((i, elem) => {
-      const time = $(elem).find('td.COL2').text().trim();
-      const date = $(elem).find('td.COL3').text().trim();
-      const description = $(elem).find('td.COL7').text().trim();
+    $('table tbody tr').each((_, row) => {
+      const columns = $(row).find('td');
+      const time = $(columns[0]).text().trim();
+      const date = $(columns[1]).text().trim();
+      const type = $(columns[2]).text().trim();
+      const description = $(columns[3]).text().trim();
 
-      // Extract the first part of the description as the address
-      const addressMatch = description.match(/^"?([^"]+?)"?[,–]/);
-      const address = addressMatch ? addressMatch[1].trim() : '';
-
-      if (time && date && description) {
-        incidents.push({
-          time,
-          date,
-          description,
-          address,
-          googleMapsLink: address
-            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
-            : null,
-        });
+      if (time && date && type && description) {
+        incidents.push({ time, date, type, description });
       }
     });
 
     res.json(incidents);
-  } catch (error) {
-    console.error('❌ Scraping failed:', error.message);
-    res.status(500).json({ error: 'Failed to fetch incidents' });
+  } catch (err) {
+    console.error('Error fetching incidents:', err);
+    res.status(500).json({ error: 'Failed to fetch incident data' });
   }
 });
 
