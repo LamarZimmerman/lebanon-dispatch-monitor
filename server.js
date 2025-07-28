@@ -15,6 +15,9 @@ const agent = new https.Agent({
 });
 
 app.get('/api/incidents', async (req, res) => {
+app.get('/', (req, res) => {
+  res.send('✅ Lebanon Dispatch Monitor API is running. Try <a href="/api/incidents">/api/incidents</a>');
+});
   try {
     const { data } = await axios.get('https://www.lcdes.org/monitor.html', {
       httpsAgent: agent,
