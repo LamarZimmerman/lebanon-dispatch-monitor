@@ -4,9 +4,7 @@ const cheerio = require('cheerio');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+
 const MONITOR_URL = 'https://www.lcdes.org/monitor.html';
 
 app.get('/api/incidents', async (req, res) => {
@@ -15,8 +13,10 @@ app.get('/api/incidents', async (req, res) => {
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
+
     const page = await browser.newPage();
     await page.goto(MONITOR_URL, { waitUntil: 'networkidle0' });
+
     const content = await page.content();
     await browser.close();
 

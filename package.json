@@ -5,10 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "puppeteer install"
-  },
-  "puppeteer": {
-    "cacheDir": ".cache/puppeteer"
+    "postinstall": "echo Skipping manual Chrome install"
   },
   "keywords": [],
   "author": "",
