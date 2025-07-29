@@ -4,12 +4,15 @@ const cheerio = require('cheerio');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 const MONITOR_URL = 'https://www.lcdes.org/monitor.html';
 
 app.get('/api/incidents', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
