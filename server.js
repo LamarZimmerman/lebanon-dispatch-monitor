@@ -1,44 +1,46 @@
 const express = require('express');
-const cors = require('cors');
 const puppeteer = require('puppeteer');
+const cheerio = require('cheerio');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-app.use(cors());
+const MONITOR_URL = 'https://www.lcdes.org/monitor.html';
 
 app.get('/api/incidents', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
-
-    await page.goto('https://www.lcdes.org/monitor.html', {
-      waitUntil: 'networkidle2',
-    });
-
-    // Evaluate page content
-    const incidents = await page.evaluate(() => {
-      const rows = Array.from(document.querySelectorAll('table tbody tr'));
-      return rows.map((row) => {
-        const cells = row.querySelectorAll('td');
-        return {
-          time: cells[0]?.innerText.trim(),
-          date: cells[1]?.innerText.trim(),
-          type: cells[2]?.innerText.trim(),
-          location: cells[3]?.innerText.trim(),
-        };
-      });
-    });
-
+    await page.goto(MONITOR_URL, { waitUntil: 'networkidle0' });
+    const content = await page.content();
     await browser.close();
 
+    const $ = cheerio.load(content);
+    const incidents = [];
+
+    $('tr.dispatchRow').each((i, row) => {
+      const tds = $(row).find('td');
+      const incident = {
+        time: $(tds[0]).text().trim(),
+        type: $(tds[1]).text().trim(),
+        address: $(tds[2]).text().trim(),
+        city: $(tds[3]).text().trim(),
+        unit: $(tds[4]).text().trim(),
+      };
+      incidents.push(incident);
+    });
+
     res.json(incidents);
-  } catch (err) {
-    console.error('Scraping failed:', err.message);
-    res.status(500).json({ error: 'Failed to fetch incident data' });
+  } catch (error) {
+    console.error('Scraping failed:', error.message);
+    res.status(500).json({ error: 'Failed to fetch incident data.' });
   }
+});
+
+app.get('/', (req, res) => {
+  res.send('Lebanon Dispatch Monitor API is running.');
 });
 
 app.listen(PORT, () => {
