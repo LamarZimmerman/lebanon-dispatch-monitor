@@ -1,41 +1,42 @@
 const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
 const cors = require('cors');
+const puppeteer = require('puppeteer');
 
 const app = express();
-
-// Use PORT from environment (needed for Render)
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-app.get('/', (req, res) => {
-  res.send('✅ Lebanon Dispatch Monitor API is running. Try <a href="/api/incidents">/api/incidents</a>');
-});
-
 app.get('/api/incidents', async (req, res) => {
   try {
-    const { data: html } = await axios.get('https://www.lcdes.org/monitor.html');
-    const $ = cheerio.load(html);
-
-    const incidents = [];
-
-    $('table tbody tr').each((_, row) => {
-      const columns = $(row).find('td');
-      const time = $(columns[0]).text().trim();
-      const date = $(columns[1]).text().trim();
-      const type = $(columns[2]).text().trim();
-      const description = $(columns[3]).text().trim();
-
-      if (time && date && type && description) {
-        incidents.push({ time, date, type, description });
-      }
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
+    const page = await browser.newPage();
+
+    await page.goto('https://www.lcdes.org/monitor.html', {
+      waitUntil: 'networkidle2',
+    });
+
+    // Evaluate page content
+    const incidents = await page.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('table tbody tr'));
+      return rows.map((row) => {
+        const cells = row.querySelectorAll('td');
+        return {
+          time: cells[0]?.innerText.trim(),
+          date: cells[1]?.innerText.trim(),
+          type: cells[2]?.innerText.trim(),
+          location: cells[3]?.innerText.trim(),
+        };
+      });
+    });
+
+    await browser.close();
 
     res.json(incidents);
   } catch (err) {
-    console.error('Error fetching incidents:', err);
+    console.error('Scraping failed:', err.message);
     res.status(500).json({ error: 'Failed to fetch incident data' });
   }
 });
