@@ -4,7 +4,7 @@
   "description": "Scrape Lebanon County Dispatch Monitor for incidents",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.js"
   },
   "dependencies": {
     "axios": "^1.6.8",
