@@ -12,6 +12,7 @@ app.get('/api/incidents', async (req, res) => {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath: puppeteer.executablePath(), // force use of bundled Chromium
     });
 
     const page = await browser.newPage();
