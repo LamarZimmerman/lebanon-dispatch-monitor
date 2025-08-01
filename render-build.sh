@@ -1,11 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Exit immediately if a command exits with a non-zero status
-set -e
-
-# Install Chromium (system-level)
+# Install Chromium
 apt-get update
-apt-get install -y chromium-browser
+apt-get install -y chromium
 
-# Ensure Puppeteer doesn't try to download its own Chromium
-export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# Set environment variable for Puppeteer to find Chromium
+export PUPPETEER_EXECUTABLE_PATH=$(which chromium)
