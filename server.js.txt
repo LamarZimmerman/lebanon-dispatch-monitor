@@ -1,18 +1,25 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 const MONITOR_URL = 'https://www.lcdes.org/monitor.html';
+
+// Check for valid Chromium path
+const getChromiumPath = () => {
+  if (fs.existsSync('/usr/bin/chromium-browser')) return '/usr/bin/chromium-browser';
+  if (fs.existsSync('/usr/bin/chromium')) return '/usr/bin/chromium';
+  return puppeteer.executablePath(); // fallback (if running locally)
+};
 
 app.get('/api/incidents', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath: '/usr/bin/chromium-browser', // ✅ Use system Chromium on Render
+      executablePath: getChromiumPath(),
     });
 
     const page = await browser.newPage();
