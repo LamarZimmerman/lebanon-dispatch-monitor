@@ -1,5 +1,5 @@
 const express = require('express');
-const puppeteer = require('puppeteer-core'); // <- use puppeteer-core
+const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 
 const app = express();
@@ -12,7 +12,7 @@ app.get('/api/incidents', async (req, res) => {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium'
+      executablePath: puppeteer.executablePath() // Use Puppeteer's bundled Chromium
     });
 
     const page = await browser.newPage();
