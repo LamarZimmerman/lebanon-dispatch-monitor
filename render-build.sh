@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# Install Chromium (if needed)
-apt-get update
-apt-get install -y chromium
+# If using a frontend, build it first (uncomment if you have one)
+# cd client
+# npm install
+# npm run build
+# cd ..
 
-# Tell Puppeteer where to find Chromium
-export PUPPETEER_EXECUTABLE_PATH=$(which chromium)
+# Install backend dependencies
+npm install
