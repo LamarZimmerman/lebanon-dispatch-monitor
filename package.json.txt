@@ -1,6 +1,8 @@
+
 {
-  "name": "lebanon-dispatch-scraper",
+  "name": "lebanon-dispatch-monitor",
   "version": "1.0.0",
+  "description": "Real-time scraper for Lebanon County 911 dispatch data",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
