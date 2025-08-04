@@ -1,42 +1,25 @@
+const puppeteer = require('puppeteer');
 const express = require('express');
-const puppeteer = require('puppeteer-core');
-const cheerio = require('cheerio');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-async function scrapeData() {
-  let browser;
-
+app.get('/', async (req, res) => {
   try {
-    browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
       executablePath: '/usr/bin/chromium',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
-    await page.goto('https://example.com'); // Replace with the actual site
+    await page.goto('https://example.com');
+    const title = await page.title();
 
-    const content = await page.content();
-    const $ = cheerio.load(content);
-
-    // Replace below with actual scraping logic
-    const heading = $('h1').text();
-
-    return { heading };
-  } catch (error) {
-    console.error('Scraping failed:', error.message);
-    return { error: 'Scraping failed. Check logs for details.' };
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
+    await browser.close();
+    res.send(`Scraped Title: ${title}`);
+  } catch (err) {
+    console.error('Scraping failed:', err.message);
+    res.status(500).send('Scraping failed: ' + err.message);
   }
-}
-
-app.get('/', async (req, res) => {
-  const data = await scrapeData();
-  res.json(data);
 });
 
 app.listen(PORT, () => {
